@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "Tools.h"
+
 AcquisitionResult performPFSSA(
     const float* signal_in, // Tín hiệu đầu vào (mảng số thực)
     const float* local_prn, // Mã cục bộ (mảng số thực)
@@ -13,15 +14,17 @@ AcquisitionResult performPFSSA(
 ) {
     AcquisitionResult result = {0, 0.0f, 0, 0.0f};
     float max_correlation = 0.0f; 
-    float threshold = 500000.0f; 
 
     Complex* fft_input = (Complex*)malloc(N_FFT * sizeof(Complex));
     Complex* fft_output = (Complex*)malloc(N_FFT * sizeof(Complex));
+    // Mảng 1D lưu năng lượng lớn nhất của từng Pha mã (bất kể Doppler nào) để tìm Đỉnh 2
+    float* best_power_per_phase = (float*)calloc(number_of_code_phases, sizeof(float));
 
-    if (fft_input == NULL || fft_output == NULL) {
+    if (fft_input == NULL || fft_output == NULL || best_power_per_phase == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         if (fft_input) free(fft_input);
         if (fft_output) free(fft_output);
+        if (best_power_per_phase) free(best_power_per_phase);
         return result; 
     }
 
@@ -54,6 +57,8 @@ AcquisitionResult performPFSSA(
         // Thực hiện FFT để chuyển sang miền tần số (N_FFT điểm là lũy thừa của 2 gần nhất với số mẫu thực tế)
         customFFT(fft_input, fft_output, N_FFT);
 
+        float max_for_this_phase = 0.0f; // Đỉnh cao nhất của pha mã này (để lưu vào mảng 1D)
+
         // Tìm kiếm giá trị tương quan tối đa trong dải Doppler đã định
         for (int bin = (int)min_bin; bin <= (int)max_bin; bin++){
             // Xử lý wrap-around cho chỉ số bin khi nó vượt quá giới hạn của mảng FFT
@@ -63,22 +68,63 @@ AcquisitionResult performPFSSA(
             } else if (bin_idx >= N_FFT) {
                 bin_idx -= N_FFT;
             }
-            float correlation_value = fft_output[bin_idx].real * fft_output[bin_idx].real + fft_output[bin_idx].imag * fft_output[bin_idx].imag; // Tính năng lượng tương quan tại bin này
+            // Tính năng lượng tương quan tại bin này
+            float correlation_value = fft_output[bin_idx].real * fft_output[bin_idx].real + fft_output[bin_idx].imag * fft_output[bin_idx].imag; 
+            
+            // Cập nhật giá trị lớn nhất cho Pha mã hiện tại vào mảng 1D
+            if (correlation_value > max_for_this_phase) {
+                max_for_this_phase = correlation_value;
+            }
+
             if (correlation_value > max_correlation) { 
                 max_correlation = correlation_value; 
                 result.best_doppler = bin * frequency_resolution - if_f; // Chuyển bin về tần số Doppler
                 result.best_code_phase_index = phase_shift;
             }
         }   
+        // Lưu đỉnh cao nhất của Phase này vào mảng
+        best_power_per_phase[phase_shift] = max_for_this_phase;
     }
-    // Kiểm tra nếu giá trị tương quan tối đa vượt qua ngưỡng thì tín hiệu được coi là đã được tìm thấy
+
+    // ==========================================================
+    // BƯỚC RATIO METRIC: TÌM ĐỈNH THỨ 2 VÀ SO SÁNH
+    // ==========================================================
+    float second_max = 0.0f;
+    int exclusion_zone = 38; // Vùng cấm +- 38 mẫu (tương đương 1 chip C/A)
+
+    for(int i = 0; i < number_of_code_phases; i++) {
+        // Tính khoảng cách vòng tròn giữa vị trí i và Đỉnh 1
+        int dist = abs(i - result.best_code_phase_index);
+        if (dist > number_of_code_phases / 2) {
+            dist = number_of_code_phases - dist;
+        }
+        
+        // Nếu vị trí i nằm ngoài Vùng cấm, mới được xét làm Đỉnh 2
+        if (dist > exclusion_zone) {
+            if (best_power_per_phase[i] > second_max) {
+                second_max = best_power_per_phase[i];
+            }
+        }
+    }
+
+    // Tính tỷ số (Chống chia cho 0)
+    float ratio = 0.0f;
+    if (second_max > 0.0f) {
+        ratio = max_correlation / second_max;
+    }
+    
     result.max_correlation = max_correlation;
-    if (max_correlation > threshold) {
+    
+    // Ngưỡng Tỷ số 2.0 hoặc 2.5
+    if (ratio >= 2.4f) {
         result.is_acquired = 1; 
+    } else {
+        result.is_acquired = 0;
     }
-    free (fft_input);
-    free (fft_output);
+    
+    free(fft_input);
+    free(fft_output);
+    free(best_power_per_phase);
+    
     return result;
 }
-
-
