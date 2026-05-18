@@ -110,7 +110,8 @@ AcquisitionResult performPCPSA(
             float corr_power = (i_val * i_val) + (q_val * q_val); 
             
             // Chuyển i (Độ Trễ - Delay) về Độ Dịch Pha (Phase Shift) để đồng bộ với SSA
-            int actual_phase = (number_of_samples - i) % number_of_samples;
+            int actual_phase = (number_of_samples - i) % number_of_samples; // Sau khi dịch pha, vị trí bắt đầu của mã PRN sẽ trượt về phía trước,
+                                                                            //  nên phải lấy (number_of_samples - i) để dịch ngược lại. 
 
             // Cập nhật giá trị lớn nhất cho Pha mã hiện tại vào mảng 1D
             if (corr_power > best_power_per_phase[actual_phase]) {
@@ -154,8 +155,8 @@ AcquisitionResult performPCPSA(
     
     result.max_correlation = max_correlation;
     
-    // Ngưỡng Tỷ số là 2.0 hoặc 2.5
-    if (ratio >= 2.4f) {
+    // Ngưỡng Tỷ số công suất nên là 4.0 hoặc 4.5
+    if (ratio >= 4.0f ) { 
         result.is_acquired = 1;
     } else {
         result.is_acquired = 0;
@@ -171,3 +172,4 @@ AcquisitionResult performPCPSA(
 
     return result;
 }
+// làm sao để phát ra tín hiệu gps giả

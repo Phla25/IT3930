@@ -115,9 +115,9 @@ AcquisitionResult performPFSSA(
     
     result.max_correlation = max_correlation;
     
-    // Ngưỡng Tỷ số 2.0 hoặc 2.5
-    if (ratio >= 2.4f) {
-        result.is_acquired = 1; 
+    // Ngưỡng Tỷ số công suất nên là 4.0 hoặc 4.5
+    if (ratio >= 4.0f ) { 
+        result.is_acquired = 1;
     } else {
         result.is_acquired = 0;
     }
