@@ -1,22 +1,18 @@
-// Code Loop Filter - Bộ lọc vòng khóa mã (Bậc 2)
-#include "CodeLoopFilter.h"
+// Carrier Loop Filter - Bộ lọc vòng khóa sóng mang (Bậc 2)
+#include "CarrierLoopFilter.h"
 #include <math.h>
 
-// Giả định độ lợi hệ thống Ko * Kd = 1 do sai số pha mã đã được chuẩn hóa
-//Lượng hiệu chỉnh code_correction đẩy vào Code NCO mang đơn vị tần số chip Hz (số chip tăng tiến trên giây). 
-// Trong chu kỳ tích phân T = 0.001 s =1 ms, nếu tần số phát mã lệch 1 Hz, pha mã tích lũy thực tế chỉ tịnh tiến được: 
-// 1 Hz x 0.001 s = 0.001 chip.
-#define k_o 0.001f
-#define k_d 1.0f
-
-void CodeLoopFilter_Init(LoopFilterState *state, float b_l, float zeta, float t_int){
+void CarrierLoopFilter_Init(LoopFilterState *state, float b_l, float zeta, float t_int){
     // Tính tần số tự nhiên (omega_n) dựa trên băng thông nhiễu (b_l) và hệ số cản (zeta)
-    // Áp dụng phương trình (7.18) của tài liệu
+    // Áp dụng phương trình (7.18)
     float omega_n = (8.0f * zeta * b_l) / (4.0f * zeta * zeta + 1.0f);
     float w_nT = omega_n * t_int;
     
     // Mẫu số chung sinh ra từ phép biến đổi song tuyến tính (Bilinear Transform)
     float denom = 4.0f + 4.0f * zeta * w_nT + w_nT * w_nT; 
+
+    float k_o = t_int; // Độ lợi tích lũy thời gian của NCO sóng mang (0.001)
+    float k_d = 1.0f;  // Bộ phân biệt trả về vòng chu kỳ tuyệt đối (1.0)
     
     // Lưu trữ các hệ số c1, c2 vào trạng thái của bộ lọc
     // Áp dụng phương trình (7.16) và (7.17)
@@ -28,8 +24,9 @@ void CodeLoopFilter_Init(LoopFilterState *state, float b_l, float zeta, float t_
     state->old_output = 0.0f;
 }
 
-float CodeLoopFilter_Update(LoopFilterState *state, float current_error){
-    // Thực hiện hàm truyền kỹ thuật số F(z) = ((c1 + c2) - c1 * z^(-1)) / (1 - z^(-1))
+float CarrierLoopFilter_Update(LoopFilterState *state, float current_error){
+    // Thực hiện hàm truyền kỹ thuật số của riêng bộ lọc F(z) = ((c1 + c2) - c1 * z^(-1)) / (1 - z^(-1))
+    // Áp dụng phương trình (7.12)
     // Chuyển đổi sang phương trình sai phân miền thời gian:
     // v[n] = v[n-1] + (c1 + c2) * e[n] - c1 * e[n-1]
     
@@ -41,7 +38,6 @@ float CodeLoopFilter_Update(LoopFilterState *state, float current_error){
     state->old_output = current_output;
     state->old_error = current_error;
 
-    // Trả về lượng hiệu chỉnh tốc độ mã (Hz) để đưa trực tiếp vào Code NCO
-    // Lượng hiệu chỉnh này sẽ được cộng vào tần số mã danh định (1.023 MHz)
+    // Trả về lượng hiệu chỉnh tần số Doppler (Hz) để đưa trực tiếp vào Carrier NCO
     return current_output;
 }

@@ -14,7 +14,7 @@ void NCOCarrierGenerator_Init(NCOCarrierState *state, float init_carrier_freq) {
 void NCOCarrierGenerator_Generate(NCOCarrierState *state, int num_samples, float sampling_freq,
                                   float *cos_carrier, float *sin_carrier) 
 {
-    float phase_step = 2.0f * PI * state->carrier_freq / sampling_freq;
+    float phase_step = -2.0f * PI * state->carrier_freq / sampling_freq;
 
     for (int i = 0; i < num_samples; i++) {
         // Tính toán sóng mang cục bộ tại mẫu thứ i
@@ -23,8 +23,8 @@ void NCOCarrierGenerator_Generate(NCOCarrierState *state, int num_samples, float
 
         // Cập nhật pha cho mẫu tiếp theo
         state->carrier_phase_accummulate += phase_step;
-        if (state->carrier_phase_accummulate >= 2.0f * PI) {
-            state->carrier_phase_accummulate -= 2.0f * PI; // Giữ pha trong khoảng [0, 2*PI]
+        if (state->carrier_phase_accummulate < -2.0f * PI) {
+            state->carrier_phase_accummulate += 2.0f * PI; // Giữ pha trong khoảng [-2*PI, 0]
         }
     }
 }

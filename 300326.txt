@@ -1,3 +1,4 @@
 Tìm hiểu chip set
 Còn nếu làm tiếp thì làm bộ thu mềm
 -> Đầu vào là tín hiệu thu được ở ăng ten và chuyển oổi số
+

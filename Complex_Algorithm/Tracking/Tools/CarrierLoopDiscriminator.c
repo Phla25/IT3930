@@ -15,6 +15,6 @@ float CarrierLoopDiscriminator_Evaluate(const CorrelatorOutputs *outputs){
         return (Q_P >= 0.0f) ? 0.25f : -0.25f; 
         // Nếu I_P gần bằng 0, chỉ dựa vào dấu của Q_P để xác định sai số pha
     }
-    float carrier_phase_error = atanf(Q_P / I_P) / (2.0f * PI);
+    float carrier_phase_error = atanf(Q_P/ I_P) / (2.0f * PI);
     return carrier_phase_error;
 }

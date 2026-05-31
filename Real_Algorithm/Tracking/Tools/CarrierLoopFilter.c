@@ -2,12 +2,6 @@
 #include "CarrierLoopFilter.h"
 #include <math.h>
 
-// Giả định độ lợi hệ thống Ko * Kd = 1 do sai số pha đã được chuẩn hóa về "chu kỳ"
-#define k_o 1.0f
-// Trong chu kỳ tích phân T = 1ms,
-// Một bộ dao động lệch 1 Hz chỉ tích lũy được một lượng pha dải cơ sở là 1 Hz x 0.001 s = 0.001 cycles
-#define k_d 0.001f
-
 void CarrierLoopFilter_Init(LoopFilterState *state, float b_l, float zeta, float t_int){
     // Tính tần số tự nhiên (omega_n) dựa trên băng thông nhiễu (b_l) và hệ số cản (zeta)
     // Áp dụng phương trình (7.18)
@@ -16,6 +10,9 @@ void CarrierLoopFilter_Init(LoopFilterState *state, float b_l, float zeta, float
     
     // Mẫu số chung sinh ra từ phép biến đổi song tuyến tính (Bilinear Transform)
     float denom = 4.0f + 4.0f * zeta * w_nT + w_nT * w_nT; 
+
+    float k_o = t_int; // Độ lợi tích lũy thời gian của NCO sóng mang (0.001)
+    float k_d = 1.0f;  // Bộ phân biệt trả về vòng chu kỳ tuyệt đối (1.0)
     
     // Lưu trữ các hệ số c1, c2 vào trạng thái của bộ lọc
     // Áp dụng phương trình (7.16) và (7.17)

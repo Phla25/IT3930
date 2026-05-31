@@ -2,10 +2,16 @@
 #ifndef INTEGRATE_AND_DUMP_H
 #define INTEGRATE_AND_DUMP_H
 
-// Định nghĩa cấu trúc lưu 6 giá trị tích phân sau 1ms
+// Thêm vào cấu trúc CorrelatorOutputs để lưu trữ đầy đủ năng lượng 3 nhánh mã
 typedef struct {
-    float I_E, I_P, I_L; // Nhánh đồng pha (Early, Prompt, Late)
-    float Q_E, Q_P, Q_L; // Nhánh vuông pha (Early, Prompt, Late)
+    float I_E; float Q_E; // Nhánh Sớm (Early)
+    float I_P; float Q_P; // Nhánh Đúng pha (Prompt)
+    float I_L; float Q_L; // Nhánh Trễ (Late)
+    
+    // THÊM: Biên độ hình học (Envelope) tính toán bằng sqrt phục vụ vẽ hình 1:1
+    float amp_E;
+    float amp_P;
+    float amp_L;
 } CorrelatorOutputs;
 
 // Thực hiện nhân tín hiệu thô với Sóng mang nội và 3 pha mã, sau đó tích phân (cộng dồn)

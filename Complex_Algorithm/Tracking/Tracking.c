@@ -46,7 +46,7 @@ void Tracking_Init(TrackingChannel *channel, int prn, float fs, float if_freq, f
     channel->rem_carr_phase = 0.0f;
 }
 // Chỉ thực hiện 1 khối, sau đó sẽ cộng dồn kết quả 20 khối để quyết định 1 bit dữ liệu định vị
-void Tracking_ProcessBlock(TrackingChannel *channel, const float *signal_block, int* sample_offset, 
+void Tracking_ProcessBlock(TrackingChannel *channel, const Complex *signal_block, int* sample_offset, 
                            CorrelatorOutputs *outputs, float *nav_data_bit)
 {
     // Tính block size xử lý trong 1ms (biến đổi)
@@ -80,6 +80,11 @@ void Tracking_ProcessBlock(TrackingChannel *channel, const float *signal_block, 
     // 2. Tích phân và xả (Integrate and Dump) để lấy 6 giá trị I/Q 
     IntegrateAndDump_Process(signal_block, blksize, cos_carrier, sin_carrier, 
                               early_code, prompt_code, late_code, outputs); 
+
+    // THÊM: Tính toán biên độ hình học (Envelope) phục vụ đồ thị Correlation Results của Python
+    outputs->amp_E = sqrtf((outputs->I_E * outputs->I_E) + (outputs->Q_E * outputs->Q_E));
+    outputs->amp_P = sqrtf((outputs->I_P * outputs->I_P) + (outputs->Q_P * outputs->Q_P));
+    outputs->amp_L = sqrtf((outputs->I_L * outputs->I_L) + (outputs->Q_L * outputs->Q_L));
                     
     //ĐÓNG VÒNG LẶP SÓNG MANG (CARRIER TRACKING FEEDBACK)
     // Đo đạc sai số và đẩy qua bộ lọc
@@ -87,9 +92,9 @@ void Tracking_ProcessBlock(TrackingChannel *channel, const float *signal_block, 
     float doppler_correction = CarrierLoopFilter_Update(&channel->carrier_filter, channel->current_carrier_error);
 
     // Phản hồi: Cập nhật lại tần số Carrier NCO cho chu kỳ tiếp theo [1]
-    // Vòng phản hồi âm 
     channel->current_doppler = doppler_correction;
-    channel->carrier_state.carrier_freq = channel->base_if_freq - channel->current_doppler;
+    // f_IF + f_Doppler
+    channel->carrier_state.carrier_freq = channel->base_if_freq + channel->current_doppler; 
 
     // ĐÓNG VÒNG LẶP MÃ (CODE TRACKING FEEDBACK)
     // Đo đạc sai số pha mã và đẩy qua bộ lọc vòng mã (Code Loop Filter)
@@ -101,7 +106,8 @@ void Tracking_ProcessBlock(TrackingChannel *channel, const float *signal_block, 
     float carrier_aiding = channel->current_doppler * (1023000.0f / 1575420000.0f);
     
     // Phản hồi: Cập nhật tốc độ sinh mã cho Code NCO chu kỳ tiếp theo [1]
-    channel->code_state.code_freq = 1023000.0f - carrier_aiding + code_correction;
+    // Doppler hỗ trợ có thể dương hoặc ngược chiều với hiệu chỉnh từ Code Loop Filter, tùy thuộc vào pha hiện tại của tín hiệu
+    channel->code_state.code_freq = 1023000.0f + code_correction;
 
     // 3. Trích xuất dữ liệu định vị thô (Lưu ý: cần cộng dồn 20ms ở hàm bên ngoài để quyết định 1 bit)
     *nav_data_bit = outputs->I_P;
@@ -109,6 +115,9 @@ void Tracking_ProcessBlock(TrackingChannel *channel, const float *signal_block, 
     // 4 Lưu phần dư pha mã và sóng mang chưa xử lý để cộng dồn vào chu kỳ tiếp theo
     channel->rem_code_phase = channel->rem_code_phase 
                             + blksize * code_phase_step - 1023.0f;
+    // THÊM DÒNG NÀY: Đồng bộ lại pha tích lũy của generator
+    // để nó bắt đầu đúng từ rem_code_phase cho chu kỳ tiếp theo
+    channel->code_state.code_phase_accummulate = channel->rem_code_phase;
     // Cập nhật offset ra ngoài
     *sample_offset += blksize;
 

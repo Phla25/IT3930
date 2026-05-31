@@ -1,7 +1,7 @@
 // Integrate and Dump - Công đoạn nhân tín hiệu thô với sóng mang nội và mã PRN, sau đó tích phân (cộng dồn) trong 1ms để chuẩn bị cho các bộ Discriminator xử lý
 #include "IntegrateAndDump.h"
 
-void IntegrateAndDump_Process(const float *incoming_signal, int number_of_samples,
+void IntegrateAndDump_Process(const Complex *incoming_signal, int number_of_samples,
                               const float *cos_carrier, const float *sin_carrier,
                               const float *early_code, const float *prompt_code, const float *late_code,
                               CorrelatorOutputs *outputs)
@@ -11,17 +11,19 @@ void IntegrateAndDump_Process(const float *incoming_signal, int number_of_sample
     float accummulate_QE = 0.0f, accummulate_QP = 0.0f, accummulate_QL = 0.0f;
 
     for (int i = 0; i < number_of_samples; i++) {
-        // Mẫu tín hiệu thô hiện tại
-        float s = incoming_signal[i];
+        // 0. Mẫu tín hiệu thô hiện tại
+        float s_I = incoming_signal[i].real;
+        float s_Q = incoming_signal[i].imag;
 
         // 1. Giai đoạn hạ tần xuống băng tần cơ sở (Carrier Wipe-Off)
-        // Nhân tín hiệu với sóng mang hình sin và cosin nội
-        float baseband_I = s * cos_carrier[i];
-        float baseband_Q = s * sin_carrier[i];
+        // Áp dụng phép nhân số phức tiêu chuẩn vì sin_carrier đã ngậm dấu âm từ NCO
+        // Real = (s_I * cos) - (s_Q * sin)
+        // Imag = (s_I * sin) + (s_Q * cos)
+        float baseband_I = (s_I * cos_carrier[i]) - (s_Q * sin_carrier[i]); 
+        float baseband_Q = (s_I * sin_carrier[i]) + (s_Q * cos_carrier[i]); 
 
         // 2. Giai đoạn tương quan mã (Code Correlation) & Tích phân (Integrate)
         // Nhân dòng I và Q cơ sở với 3 pha mã dịch lệch và cộng dồn liên tục
-        
         // Nhánh Early (Sớm)
         accummulate_IE += baseband_I * early_code[i];
         accummulate_QE += baseband_Q * early_code[i];

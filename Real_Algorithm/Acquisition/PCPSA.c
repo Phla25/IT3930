@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include "Tools.h"
+#include <direct.h> // Đừng quên include dòng này
 
 // BẮT BUỘC PHẢI CÓ 2 DÒNG NÀY ĐỂ NÂNG CẤP BỘ NHỚ LÊN GẤP ĐÔI (Chống trượt Circular Correlation)
 #undef N_FFT 
@@ -14,8 +15,10 @@ AcquisitionResult performPCPSA(
     int number_of_samples, // Số mẫu trong tín hiệu đầu vào
     int number_of_code_phases, // Số code phase cần kiểm tra
     float f_sampling, // Tần số lấy mẫu của tín hiệu đầu vào
-    float if_f // Tần số trung gian của tín hiệu đầu vào
+    float if_f, // Tần số trung gian của tín hiệu đầu vào
+    int prn // PRN code của vệ tinh
 ){
+    int is_first = 1;
     AcquisitionResult result = {0, 0.0f, 0, 0.0f};
     float max_correlation = 0.0f; 
 
@@ -66,6 +69,8 @@ AcquisitionResult performPCPSA(
 
         // Hạ tần (Carrier Wipe-off) và NHÂN ĐÔI TÍN HIỆU
         for (int i = 0; i < number_of_samples; i++) {
+            // Sóng mang phức nội bộ: exp(-j * 2 * PI * fc * i / f_sampling)
+            // x(n) = s(n) * (cos - j*sin) = s(n)*cos - j*s(n)*sin
             float phase = 2.0f * PI * fc * i / f_sampling;
             float i_comp = signal_in[i] * cosf(phase);
             float q_comp = signal_in[i] * (-sinf(phase));
@@ -123,7 +128,10 @@ AcquisitionResult performPCPSA(
                 result.best_doppler = doppler;
                 result.best_code_phase_index = actual_phase;
             }
-        }
+        }        
+        // GỌI HÀM LƯU TẠI ĐÂY:
+        save_acq_bin(prn, N_FFT, cross_corr_time, is_first);
+        is_first = 0;
     }
     
     // ==========================================================
@@ -171,5 +179,17 @@ AcquisitionResult performPCPSA(
     free(best_power_per_phase);
 
     return result;
+}
+void save_acq_bin(int prn, int n_fft, Complex* corr_time, int is_first) {
+    _mkdir("Result_Acquisition"); 
+    char path[128];
+    snprintf(path, sizeof(path), "Result_Acquisition/acq_PRN%02d.bin", prn);
+    
+    // Nếu là bước Doppler đầu tiên thì mở 'wb' (ghi mới), các bước sau mở 'ab' (ghi nối tiếp)
+    FILE* f = fopen(path, is_first ? "wb" : "ab");
+    if (f) {
+        fwrite(corr_time, sizeof(Complex), n_fft, f);
+        fclose(f);
+    }
 }
 // làm sao để phát ra tín hiệu gps giả

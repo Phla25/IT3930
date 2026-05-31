@@ -1,3 +1,28 @@
-*.bin
 ./verify/*
+.gitignore
+# Ignore object files and executables
+*.o
+*.obj
 *.exe
+# Ignore build directories
+/build/
+/Debug/
+/Release/
+# Ignore generated files
+*.log
+*.tmp
+# Ignore IDE specific files
+/.vscode/
+/.idea/
+# Ignore OS specific files
+.DS_Store
+Thumbs.db
+# Ignore Results and output files
+/Real_Algorithm/Result_Acquisition/*
+/Real_Algorithm/Result_Tracking/*
+/Complex_Algorithm/Result_Acquisition/*
+/Complex_Algorithm/Result_Tracking/*
+/Real_Algorithm/*.bin
+/Complex_Algorithm/*.bin
+/Real_Algorithm/*.exe
+/Complex_Algorithm/*.exe

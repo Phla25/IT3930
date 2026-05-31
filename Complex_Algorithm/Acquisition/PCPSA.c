@@ -1,0 +1,199 @@
+// Paralle Code Phase Shift Algorithm (PCPSA) Acquisition cho tín hiệu phức GPS
+#include <stdio.h>
+#include "PCPSA.h"
+#include <stdlib.h>
+#include <math.h>
+#include "Tools.h"
+
+// BẮT BUỘC PHẢI CÓ 2 DÒNG NÀY ĐỂ NÂNG CẤP BỘ NHỚ LÊN GẤP ĐÔI (Chống trượt Circular Correlation)
+#undef N_FFT 
+#define N_FFT 131072 // Kích thước mảng FFT (lũy thừa của 2 gần nhất với 76384)
+
+AcquisitionResult performPCPSA(
+    const float* signal_in, // Tín hiệu đầu vào (mảng số thực)
+    const float* local_prn, // Mã cục bộ (mảng số thực)
+    int number_of_samples, // Số mẫu trong tín hiệu đầu vào
+    int number_of_code_phases, // Số code phase cần kiểm tra
+    float f_sampling, // Tần số lấy mẫu của tín hiệu đầu vào
+    float if_f, // Tần số trung gian của tín hiệu đầu vào
+    int prn // PRN code của vệ tinh
+){
+    int is_first = 1;
+    AcquisitionResult result = {0, 0.0f, 0, 0.0f};
+    float max_correlation = 0.0f; 
+
+    Complex* prn_complex = (Complex*)calloc(N_FFT, sizeof(Complex));
+    Complex* prn_fft = (Complex*)malloc(N_FFT * sizeof(Complex));
+    Complex* signal_baseband = (Complex*)malloc(N_FFT * sizeof(Complex));
+    Complex* signal_fft = (Complex*)malloc(N_FFT * sizeof(Complex));
+    Complex* cross_corr_freq = (Complex*)malloc(N_FFT * sizeof(Complex));
+    Complex* cross_corr_time = (Complex*)malloc(N_FFT * sizeof(Complex));
+    // Mảng 1D lưu năng lượng lớn nhất của từng Pha mã (bất kể Doppler nào) để tìm Đỉnh 2
+    float* best_power_per_phase = (float*)calloc(number_of_samples, sizeof(float));
+
+    if (prn_complex == NULL || prn_fft == NULL || signal_baseband == NULL || signal_fft == NULL || cross_corr_freq == NULL || cross_corr_time == NULL || best_power_per_phase == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        if(prn_complex) free(prn_complex);
+        if(prn_fft) free(prn_fft);
+        if(signal_baseband) free(signal_baseband);
+        if(signal_fft) free(signal_fft);
+        if(cross_corr_freq) free(cross_corr_freq);
+        if(cross_corr_time) free(cross_corr_time);
+        if(best_power_per_phase) free(best_power_per_phase);
+        return result;
+    }
+
+    // Xử lý mã PRN để tạo thành tín hiệu phức (phần ảo bằng 0)
+    for (int i = 0; i < number_of_samples; i++) {
+        prn_complex[i].real = local_prn[i];
+        prn_complex[i].imag = 0.0f;
+    }
+
+    // Zero-padding mã PRN lên kích thước N_FFT
+    for (int i = number_of_samples; i < N_FFT; i++) {
+        prn_complex[i].real = 0.0f;
+        prn_complex[i].imag = 0.0f;
+    }
+
+    // Biến đổi FFT của mã PRN
+    customFFT(prn_complex, prn_fft, N_FFT);
+
+    // Quét tần số Doppler trong giới hạn +/- 10 kHz
+    for (float doppler = -DOPPLER_MAX; doppler <= DOPPLER_MAX; doppler += DOPPLER_STEP) {
+        float fc = if_f + doppler;
+
+        for (int i = 0; i < N_FFT; i++) {
+            signal_baseband[i].real = 0.0f;
+            signal_baseband[i].imag = 0.0f;
+        }
+
+        // Hạ tần (Carrier Wipe-off) và NHÂN ĐÔI TÍN HIỆU
+        for (int i = 0; i < number_of_samples; i++) {
+            // Sóng mang phức nội bộ: exp(-j * 2 * PI * fc * i / f_sampling)
+            // Dấu trừ vì ta đang hạ tần (dịch phổ về 0)
+            float phase = 2.0f * PI * fc * i / f_sampling;
+            float cos_val = cosf(phase);
+            float sin_val = sinf(phase);
+
+            // Phép nhân số phức: (I + jQ) * (cos - j*sin)
+            // Real = I*cos + Q*sin
+            // Imag = -I*sin + Q*cos
+            float i_in = signal_in[i*2];   // Giả sử dữ liệu I/Q xen kẽ trong mảng 1D
+            float q_in = signal_in[i*2+1]; 
+    
+            signal_baseband[i].real = (i_in * cos_val) + (q_in * sin_val);
+            signal_baseband[i].imag = (-i_in * sin_val) + (q_in * cos_val);
+    
+            // Bản copy thứ 2 cho Circular Correlation (như cũ)
+            signal_baseband[i + number_of_samples] = signal_baseband[i];
+        }
+
+        // Nhồi số 0 từ mẫu thứ number_of_samples*2 đến hết N_FFT
+        for (int i = number_of_samples*2; i < N_FFT; i++) {
+            signal_baseband[i].real = 0.0f;
+            signal_baseband[i].imag = 0.0f;
+        }
+
+        // Biến đổi FFT của tín hiệu đã hạ tần
+        customFFT(signal_baseband, signal_fft, N_FFT);
+        
+        // Tính tích chập trong miền tần số (tương đương với nhân phức)
+        // Nhân phổ tần số: Tín hiệu * Liên hợp phức của PRN
+        for (int i = 0; i < N_FFT; i++) {
+            float a = signal_fft[i].real;
+            float b = signal_fft[i].imag;
+            float c = prn_fft[i].real;
+            float d = prn_fft[i].imag; 
+            
+            cross_corr_freq[i].real = (a * c) + (b * d);
+            cross_corr_freq[i].imag = (b * c) - (a * d);
+        }
+
+        // Biến đổi ngược IFFT để lấy kết quả tương quan trong miền thời gian
+        customIFFT(cross_corr_freq, cross_corr_time, N_FFT);
+
+        // Tìm giá trị tương quan tối đa và vị trí của nó
+        for (int i = 0; i < number_of_samples; i++) { // biến i là độ trễ code phase (Delay)
+            float i_val = cross_corr_time[i].real;
+            float q_val = cross_corr_time[i].imag;
+            float corr_power = (i_val * i_val) + (q_val * q_val); 
+            
+            // Chuyển i (Độ Trễ - Delay) về Độ Dịch Pha (Phase Shift) để đồng bộ với SSA
+            int actual_phase = (number_of_samples - i) % number_of_samples; // Sau khi dịch pha, vị trí bắt đầu của mã PRN sẽ trượt về phía trước,
+                                                                            //  nên phải lấy (number_of_samples - i) để dịch ngược lại. 
+
+            // Cập nhật giá trị lớn nhất cho Pha mã hiện tại vào mảng 1D
+            if (corr_power > best_power_per_phase[actual_phase]) {
+                best_power_per_phase[actual_phase] = corr_power;
+            }
+            
+            if (corr_power > max_correlation) {
+                max_correlation = corr_power;
+                result.best_doppler = doppler;
+                result.best_code_phase_index = actual_phase;
+            }
+        }
+        // GỌI HÀM LƯU TẠI ĐÂY:
+        save_acq_bin(prn, N_FFT, cross_corr_time, is_first);
+        is_first = 0;
+    }
+    
+    // ==========================================================
+    // BƯỚC RATIO METRIC: TÌM ĐỈNH THỨ 2 VÀ SO SÁNH
+    // ==========================================================
+    float second_max = 0.0f;
+    int exclusion_zone = 38; // Vùng cấm +- 38 mẫu (tương đương 1 chip C/A)
+
+    for(int i = 0; i < number_of_samples; i++) {
+        // Tính khoảng cách vòng tròn giữa vị trí i và Đỉnh 1
+        int dist = abs(i - result.best_code_phase_index);
+        if (dist > number_of_samples / 2) {
+            dist = number_of_samples - dist;
+        }
+        
+        // Nếu vị trí i nằm ngoài Vùng cấm, mới được xét làm Đỉnh 2
+        if (dist > exclusion_zone) {
+            if (best_power_per_phase[i] > second_max) {
+                second_max = best_power_per_phase[i];
+            }
+        }
+    }
+
+    // Tính tỷ số (Chống chia cho 0)
+    float ratio = 0.0f;
+    if (second_max > 0.0f) {
+        ratio = max_correlation / second_max;
+    }
+    
+    result.max_correlation = max_correlation;
+    
+    // Ngưỡng Tỷ số công suất nên là 4.0 hoặc 4.5
+    if (ratio >= 4.0f ) { 
+        result.is_acquired = 1;
+    } else {
+        result.is_acquired = 0;
+    }
+
+    free(prn_complex); 
+    free(prn_fft); 
+    free(signal_baseband);
+    free(signal_fft); 
+    free(cross_corr_freq); 
+    free(cross_corr_time);
+    free(best_power_per_phase);
+
+    return result;
+}
+void save_acq_bin(int prn, int n_fft, Complex* corr_time, int is_first) {
+    _mkdir("Result_Acquisition"); 
+    char path[128];
+    snprintf(path, sizeof(path), "Result_Acquisition/acq_PRN%02d.bin", prn);
+    
+    // Nếu là bước Doppler đầu tiên thì mở 'wb' (ghi mới), các bước sau mở 'ab' (ghi nối tiếp)
+    FILE* f = fopen(path, is_first ? "wb" : "ab");
+    if (f) {
+        fwrite(corr_time, sizeof(Complex), n_fft, f);
+        fclose(f);
+    }
+}
+// làm sao để phát ra tín hiệu gps giả
