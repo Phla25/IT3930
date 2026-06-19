@@ -6,6 +6,7 @@
 #include "./Tools/NCOCarrierGenerator.h"
 #include "./Tools/CarrierLoopFilter.h"
 #include "./Tools/IntegrateAndDump.h"
+#include "../Acquisition/Acquisition.h"
 
 typedef struct {
     int prn;
@@ -25,6 +26,12 @@ typedef struct {
 
     float rem_code_phase;   // Số chip dư chưa xử lý từ chu kỳ trước
     float rem_carr_phase;   // Pha sóng mang dư (radian)
+
+    float early_code[6000];
+    float prompt_code[6000];
+    float late_code[6000];
+    float cos_carrier[6000];
+    float sin_carrier[6000];
 } TrackingChannel;
 
 // Khởi tạo toàn bộ kênh bám bắt cho 1 vệ tinh cụ thể

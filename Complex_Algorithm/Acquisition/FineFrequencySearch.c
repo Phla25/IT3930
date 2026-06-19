@@ -15,6 +15,7 @@ AcquisitionResult performFineFrequencySearch(const Complex* signal_in, const flo
 
     int signal_10ms = 10 * number_of_samples; 
     int delay_idx = (number_of_samples - coarse_result.best_code_phase_index) % number_of_samples;
+    // int delay_idx = coarse_result.best_code_phase_index; // SỬA LẠI ĐỂ TRÁNH NHẦM LẪN VỚI PHASE INDEX TRONG TRACKING
 
     float* long_ca_code = (float*)malloc(signal_10ms * sizeof(float));
     if (!long_ca_code) return coarse_result;

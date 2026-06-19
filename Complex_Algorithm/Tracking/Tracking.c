@@ -12,9 +12,9 @@
 #include <math.h> 
 
 #define PI 3.14159265358979323846f
-#define CARRIER_LOOP_BANDWIDTH 25.0f // Băng thông vòng khóa sóng mang (Hz)
+#define CARRIER_LOOP_BANDWIDTH 40.0f // Băng thông vòng khóa sóng mang (Hz)
 #define CARRIER_LOOP_ZETA 0.707f     // Hệ số cản cho bộ lọc vòng khóa sóng mang
-#define CODE_LOOP_BANDWIDTH 2.0f     // Băng thông vòng mã DLL (hẹp để lọc nhiễu tốt hơn)
+#define CODE_LOOP_BANDWIDTH 4.0f     // Băng thông vòng mã DLL (hẹp để lọc nhiễu tốt hơn)
 #define CODE_LOOP_ZETA 0.707f        // Hệ số cản cho bộ lọc vòng mã DLL
 #define T_INTEGRATION 0.001f         // Thời gian tích phân (1ms)
 
@@ -53,22 +53,27 @@ void Tracking_ProcessBlock(TrackingChannel *channel, const Complex *signal_block
     float code_phase_step = channel->code_state.code_freq / channel->sampling_freq;
     int blksize = (int)ceilf((1023.0f - channel->rem_code_phase) / code_phase_step);
 
-    float *early_code  = (float*)malloc(blksize * sizeof(float));
-    float *prompt_code = (float*)malloc(blksize * sizeof(float));
-    float *late_code   = (float*)malloc(blksize * sizeof(float));
-    float *cos_carrier = (float*)malloc(blksize * sizeof(float));
-    float *sin_carrier = (float*)malloc(blksize * sizeof(float));
+    // float *early_code  = (float*)malloc(blksize * sizeof(float));
+    // float *prompt_code = (float*)malloc(blksize * sizeof(float));
+    // float *late_code   = (float*)malloc(blksize * sizeof(float));
+    // float *cos_carrier = (float*)malloc(blksize * sizeof(float));
+    // float *sin_carrier = (float*)malloc(blksize * sizeof(float));
 
-    if (early_code == NULL || prompt_code == NULL || late_code == NULL || 
-        cos_carrier == NULL || sin_carrier == NULL) {
-        fprintf(stderr, "Memory allocation failed\n");
-        free(early_code);
-        free(prompt_code);
-        free(late_code);
-        free(cos_carrier);
-        free(sin_carrier);
-        return;
-    }
+    // if (early_code == NULL || prompt_code == NULL || late_code == NULL || 
+    //     cos_carrier == NULL || sin_carrier == NULL) {
+    //     fprintf(stderr, "Memory allocation failed\n");
+    //     free(early_code);
+    //     free(prompt_code);
+    //     free(late_code);
+    //     free(cos_carrier);
+    //     free(sin_carrier);
+    //     return;
+    // }
+    float *early_code  = channel->early_code;
+    float *prompt_code = channel->prompt_code;
+    float *late_code   = channel->late_code;
+    float *cos_carrier = channel->cos_carrier;
+    float *sin_carrier = channel->sin_carrier;
 
     // 1. Sinh mã PRN và Sóng mang dựa trên trạng thái NCO của chu kỳ hiện tại
     PRNCodeGenerator_Generate(&channel->code_state, blksize, channel->sampling_freq, 0.5f, 
@@ -121,9 +126,9 @@ void Tracking_ProcessBlock(TrackingChannel *channel, const Complex *signal_block
     // Cập nhật offset ra ngoài
     *sample_offset += blksize;
 
-    free(early_code);
-    free(prompt_code);
-    free(late_code);
-    free(cos_carrier);
-    free(sin_carrier);
+    // free(early_code);
+    // free(prompt_code);
+    // free(late_code);
+    // free(cos_carrier);
+    // free(sin_carrier);
 }

@@ -7,10 +7,10 @@
 
 // BẮT BUỘC PHẢI CÓ 2 DÒNG NÀY ĐỂ NÂNG CẤP BỘ NHỚ LÊN GẤP ĐÔI (Chống trượt Circular Correlation)
 #undef N_FFT 
-#define N_FFT 131072 // Kích thước mảng FFT (lũy thừa của 2 gần nhất với 76384)
+#define N_FFT 16384 // Kích thước mảng FFT (lũy thừa của 2 gần nhất với 10000)
 
 AcquisitionResult performPCPSA(
-    const float* signal_in, // Tín hiệu đầu vào (mảng số thực)
+    const Complex* signal_in, // Tín hiệu đầu vào (mảng số thực)
     const float* local_prn, // Mã cục bộ (mảng số thực)
     int number_of_samples, // Số mẫu trong tín hiệu đầu vào
     int number_of_code_phases, // Số code phase cần kiểm tra
@@ -78,8 +78,8 @@ AcquisitionResult performPCPSA(
             // Phép nhân số phức: (I + jQ) * (cos - j*sin)
             // Real = I*cos + Q*sin
             // Imag = -I*sin + Q*cos
-            float i_in = signal_in[i*2];   // Giả sử dữ liệu I/Q xen kẽ trong mảng 1D
-            float q_in = signal_in[i*2+1]; 
+            float i_in = signal_in[i].real;  
+            float q_in = signal_in[i].imag;
     
             signal_baseband[i].real = (i_in * cos_val) + (q_in * sin_val);
             signal_baseband[i].imag = (-i_in * sin_val) + (q_in * cos_val);
@@ -121,7 +121,6 @@ AcquisitionResult performPCPSA(
             // Chuyển i (Độ Trễ - Delay) về Độ Dịch Pha (Phase Shift) để đồng bộ với SSA
             int actual_phase = (number_of_samples - i) % number_of_samples; // Sau khi dịch pha, vị trí bắt đầu của mã PRN sẽ trượt về phía trước,
                                                                             //  nên phải lấy (number_of_samples - i) để dịch ngược lại. 
-
             // Cập nhật giá trị lớn nhất cho Pha mã hiện tại vào mảng 1D
             if (corr_power > best_power_per_phase[actual_phase]) {
                 best_power_per_phase[actual_phase] = corr_power;

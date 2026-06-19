@@ -7,17 +7,15 @@ import matplotlib.pyplot as plt
 # =============================================================================
 PRN = 15
 CSV_FILE_PATH = f"Result_Tracking\\tracking_results_PRN{PRN:02d}.csv"
-CSV_FILE_PATH = os.path.join("Real_Algorithm", CSV_FILE_PATH)
 
 if not os.path.exists(CSV_FILE_PATH):
     print(f"LỖI: Không tìm thấy file {CSV_FILE_PATH}!")
-    print("Hãy chắc chắn rằng bạn đã chạy code C để xuất dữ liệu thành công.")
+    print("Hãy chắc chắn bạn đã thêm lệnh ghi CSV vào main.c và chạy file .exe thành công.")
     exit()
 
 print(f"Đang đọc dữ liệu từ: {CSV_FILE_PATH} ...")
 df = pd.read_csv(CSV_FILE_PATH)
 
-# Chuyển đổi trục thời gian từ mili-giây (ms) sang Giây (s) để khớp 1:1 với Ref Python
 time_s = df['ms'] / 1000.0
 
 # =============================================================================
@@ -26,7 +24,6 @@ time_s = df['ms'] / 1000.0
 fig1 = plt.figure(figsize=(12, 5))
 fig1.canvas.manager.set_window_title(f'Tracking Results SV PRN {PRN} - Figure 1')
 
-# Đồ thị 1: Tần số Doppler thực tế (Discrete Carrier Frequency)
 ax1 = fig1.add_subplot(1, 2, 1)
 ax1.plot(time_s, df['doppler'], 'b', linewidth=1.2)
 ax1.set_title('Discrete Carrier Frequency')
@@ -34,7 +31,6 @@ ax1.set_xlabel('Time (s)')
 ax1.set_ylabel('Doppler (Hz)')
 ax1.grid(True, linestyle=':', alpha=0.6)
 
-# Đồ thị 2: Biểu đồ chòm sao IQ (In-phase vs. Quadrature)
 ax2 = fig1.add_subplot(1, 2, 2)
 ax2.plot(df['I_P'], df['Q_P'], '.', color='darkblue', markersize=2, alpha=0.7)
 ax2.axhline(0, color='black', linewidth=0.8, linestyle='--')
@@ -45,24 +41,20 @@ ax2.set_ylabel('Quadrature (Q_P)')
 ax2.grid(True, linestyle=':', alpha=0.6)
 
 fig1.tight_layout()
-fig1.savefig(f"Real_Algorithm\\Result_Tracking\\Tracking_Figure1_PRN{PRN:02d}.png", dpi=300)
 
 # =============================================================================
 # FIGURE 2: ĐỘNG LỰC HỌC MẠCH VÒNG KHÓA VÀ CHUỖI BIT DẪN ĐƯỜNG
 # =============================================================================
-# Tạo lưới 3 hàng, 2 cột để chứa các đồ thị phân tích mạch vòng sâu
 fig2, axs = plt.subplots(3, 2, figsize=(13, 10), sharex=False)
 fig2.canvas.manager.set_window_title(f'Tracking Results SV PRN {PRN} - Figure 2')
 
-# 1. Tần số mã dịch dòng NCO (Discrete Code Frequency)
 axs[0, 0].plot(time_s, df['codeFreq'], 'r', linewidth=1.2)
 axs[0, 0].set_title('Discrete Code Frequency')
 axs[0, 0].set_xlabel('Time (s)')
 axs[0, 0].set_ylabel('Frequency (Hz)')
 axs[0, 0].grid(True, linestyle=':', alpha=0.6)
-axs[0, 0].get_yaxis().get_major_formatter().set_useOffset(False) # Chống ghi tắt số mũ
+axs[0, 0].get_yaxis().get_major_formatter().set_useOffset(False) 
 
-# 2. Biên độ tương quan 3 nhánh (Correlation Results)
 axs[0, 1].plot(time_s, df['amp_E'], color='orange', label='$\\sqrt{I_{E}^2 + Q_{E}^2}$', linewidth=1.0)
 axs[0, 1].plot(time_s, df['amp_P'], color='green', label='$\\sqrt{I_{P}^2 + Q_{P}^2}$', linewidth=1.2)
 axs[0, 1].plot(time_s, df['amp_L'], color='purple', label='$\\sqrt{I_{L}^2 + Q_{L}^2}$', linewidth=1.0, linestyle='--')
@@ -72,46 +64,32 @@ axs[0, 1].set_ylabel('Amplitude')
 axs[0, 1].grid(True, linestyle=':', alpha=0.6)
 axs[0, 1].legend(loc="upper right")
 
-# 3. Sai số phân biệt pha sóng mang PLL (Filtered PLL Discriminator)
 axs[1, 0].plot(time_s, df['pllDiscr'], 'b', linewidth=0.8)
 axs[1, 0].set_title('Filtered PLL Discriminator')
 axs[1, 0].set_xlabel('Time (s)')
 axs[1, 0].set_ylabel('Amplitude (Cycles)')
 axs[1, 0].grid(True, linestyle=':', alpha=0.6)
 
-# 4. Sai số phân biệt pha mã DLL (Raw DLL Discriminator)
 axs[1, 1].plot(time_s, df['dllDiscr'], 'r', linewidth=0.8)
 axs[1, 1].set_title('Raw DLL Discriminator')
 axs[1, 1].set_xlabel('Time (s)')
 axs[1, 1].set_ylabel('Amplitude (Chips)')
 axs[1, 1].grid(True, linestyle=':', alpha=0.6)
 
-# 5. Đồ thị 5: Dữ liệu dẫn đường thô (Raw I_P / Navigation Bits)
-time_s = df['ms'] / 1000.0
-
-# Vẽ toàn bộ dữ liệu I_P thô (đã truyền từ C sang)
 axs[2, 0].step(time_s, df['navBit'], color='black', where='post', linewidth=1.5)
-
-# ZOOM: Giới hạn trục X chỉ hiển thị 2 giây đầu tiên để nhìn rõ sóng vuông!
 axs[2, 0].set_xlim(0, 2.0)
-
-# Tự động điều chỉnh trục Y
 y_min = df['navBit'].min()
 y_max = df['navBit'].max()
 y_margin = (y_max - y_min) * 0.1  
 if y_max > y_min: 
     axs[2, 0].set_ylim(y_min - y_margin, y_max + y_margin)
-
-# Vẽ mốc 0 màu đỏ
 axs[2, 0].axhline(0, color='red', linestyle='--', linewidth=1.5, alpha=0.8)
-
 axs[2, 0].set_title('Raw Navigation Data (I_P Amplitude) - Zoomed 2s')
 axs[2, 0].set_xlabel('Time (s)')
 axs[2, 0].set_ylabel('Amplitude (I_P)')
 axs[2, 0].grid(True, linestyle=':', alpha=0.6)
 
-# 6. Trống (Tận dụng góc này để hiển thị tóm tắt thông số thống kê kênh)
-axs[2, 1].axis('off') # Ẩn trục tọa độ
+axs[2, 1].axis('off') 
 doppler_mean = df['doppler'].mean()
 code_mean = df['codeFreq'].mean()
 info_text = (
@@ -119,13 +97,11 @@ info_text = (
     f"Total Processed Time: {time_s.max():.3f} seconds\n"
     f"Mean Doppler Shift: {doppler_mean:+.2f} Hz\n"
     f"Mean Code Frequency: {code_mean:.2f} Hz\n"
-    f"Status: LOCK STABLE (Bilinear Z-Domain)"
+    f"Status: LOCK STABLE (Complex I/Q)"
 )
 axs[2, 1].text(0.1, 0.3, info_text, fontsize=11, family='monospace',
               bbox=dict(facecolor='white', alpha=0.8, boxstyle='round,pad=1'))
 
 fig2.tight_layout()
-fig2.savefig(f"Real_Algorithm\\Result_Tracking\\Tracking_Figure2_PRN{PRN:02d}.png", dpi=300)
-
-print(">> [PLOT DONE] Đã hiển thị và xuất 2 file ảnh đồ thị chất lượng cao thành công!")
+print(">> [PLOT DONE] Đã hiển thị đồ thị thành công!")
 plt.show()

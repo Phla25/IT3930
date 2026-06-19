@@ -1,7 +1,7 @@
 // Integrate And Dump - Tích hợp tín hiệu đã hạ tần với các mã PRN để tạo ra các giá trị I và Q, sau đó sử dụng chúng để tính toán độ lệch pha và điều chỉnh tần số cục bộ
 #ifndef INTEGRATE_AND_DUMP_H
 #define INTEGRATE_AND_DUMP_H
-
+#include "../../Acquisition/Acquisition.h"
 // Thêm vào cấu trúc CorrelatorOutputs để lưu trữ đầy đủ năng lượng 3 nhánh mã
 typedef struct {
     float I_E; float Q_E; // Nhánh Sớm (Early)

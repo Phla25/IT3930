@@ -1,0 +1,144 @@
+==============================================================
+ STARTING RECEIVER GNSS-SDR (PARALLEL MULTI-EPOCH PIPELINE) 
+==============================================================
+
+
+>> Processing tracking loops in parallel...
+  -> [Frame Sync] PARITY MATCH 100%! Chinh thuc khoa khung.
+  -> [TIME REFERENCE] Locked Preamble for PRN 21 at Sample: 172755880
+  -> [Frame Sync] PARITY MATCH 100%! Chinh thuc khoa khung.
+  -> [TIME REFERENCE] Locked Preamble for PRN 18 at Sample: 172801303
+  -> [Frame Sync] PARITY MATCH 100%! Chinh thuc khoa khung.
+  -> [TIME REFERENCE] Locked Preamble for PRN 15 at Sample: 172816715
+  -> [Frame Sync] PARITY MATCH 100%! Chinh thuc khoa khung.
+  -> [TIME REFERENCE] Locked Preamble for PRN 22 at Sample: 172939476
+[OK] Decoded Subframe 1
+[OK] Decoded Subframe 1
+[OK] Decoded Subframe 1
+[OK] Decoded Subframe 1
+[OK] Decoded Subframe 2
+[OK] Decoded Subframe 2
+[OK] Decoded Subframe 2
+[OK] Decoded Subframe 2
+[OK] Decoded Subframe 3
+[OK] Decoded Subframe 3
+  [EPHEMERIS READY] PRN 21 locked all subframes. Continuing to track for Epoch positions...
+  [EPHEMERIS READY] PRN 18 locked all subframes. Continuing to track for Epoch positions...
+[OK] Decoded Subframe 3
+  [EPHEMERIS READY] PRN 15 locked all subframes. Continuing to track for Epoch positions...
+[OK] Decoded Subframe 3
+  [EPHEMERIS READY] PRN 22 locked all subframes. Continuing to track for Epoch positions...
+
+==============================================================
+ START GENERATING CONTINUOUS NAVIGATION POSITION (MULTI-EPOCH) 
+==============================================================
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 172755880)
+PRN 15 -> Thoi gian bay: 0.070747 s | Pseudorange: 21209539.17 m
+PRN 18 -> Thoi gian bay: 0.070344 s | Pseudorange: 21088560.92 m
+PRN 21 -> Thoi gian bay: 0.069155 s | Pseudorange: 20732007.90 m
+PRN 22 -> Thoi gian bay: 0.073962 s | Pseudorange: 22173165.63 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 00 sec] -> V─⌐ ─æß╗Ö:  40.00816052┬░ | Kinh ─æß╗Ö: -105.26268490┬░ | Cao ─æß╗Ö: 1605.493 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 256740116)
+PRN 15 -> Thoi gian bay: 0.070745 s | Pseudorange: 21208722.81 m
+PRN 18 -> Thoi gian bay: 0.070343 s | Pseudorange: 21088443.17 m
+PRN 21 -> Thoi gian bay: 0.069155 s | Pseudorange: 20732227.69 m
+PRN 22 -> Thoi gian bay: 0.073959 s | Pseudorange: 22172451.32 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 01 sec] -> V─⌐ ─æß╗Ö:  40.00823616┬░ | Kinh ─æß╗Ö: -105.26253982┬░ | Cao ─æß╗Ö: 1630.177 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 294932130)
+PRN 15 -> Thoi gian bay: 0.070743 s | Pseudorange: 21208353.87 m
+PRN 18 -> Thoi gian bay: 0.070343 s | Pseudorange: 21088388.22 m
+PRN 21 -> Thoi gian bay: 0.069156 s | Pseudorange: 20732337.58 m
+PRN 22 -> Thoi gian bay: 0.073958 s | Pseudorange: 22172121.63 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 02 sec] -> V─⌐ ─æß╗Ö:  40.00815540┬░ | Kinh ─æß╗Ö: -105.26280302┬░ | Cao ─æß╗Ö: 1689.918 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 333124143)
+PRN 15 -> Thoi gian bay: 0.070742 s | Pseudorange: 21207984.94 m
+PRN 18 -> Thoi gian bay: 0.070343 s | Pseudorange: 21088341.13 m
+PRN 21 -> Thoi gian bay: 0.069156 s | Pseudorange: 20732439.63 m
+PRN 22 -> Thoi gian bay: 0.073957 s | Pseudorange: 22171791.95 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 03 sec] -> V─⌐ ─æß╗Ö:  40.00811575┬░ | Kinh ─æß╗Ö: -105.26267581┬░ | Cao ─æß╗Ö: 1640.645 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 371316156)
+PRN 15 -> Thoi gian bay: 0.070741 s | Pseudorange: 21207608.16 m
+PRN 18 -> Thoi gian bay: 0.070343 s | Pseudorange: 21088286.18 m
+PRN 21 -> Thoi gian bay: 0.069156 s | Pseudorange: 20732541.67 m
+PRN 22 -> Thoi gian bay: 0.073956 s | Pseudorange: 22171462.26 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 04 sec] -> V─⌐ ─æß╗Ö:  40.00821786┬░ | Kinh ─æß╗Ö: -105.26265549┬░ | Cao ─æß╗Ö: 1628.956 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 409508169)
+PRN 15 -> Thoi gian bay: 0.070740 s | Pseudorange: 21207239.23 m
+PRN 18 -> Thoi gian bay: 0.070343 s | Pseudorange: 21088231.23 m
+PRN 21 -> Thoi gian bay: 0.069157 s | Pseudorange: 20732643.72 m
+PRN 22 -> Thoi gian bay: 0.073955 s | Pseudorange: 22171132.58 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 05 sec] -> V─⌐ ─æß╗Ö:  40.00810361┬░ | Kinh ─æß╗Ö: -105.26275218┬░ | Cao ─æß╗Ö: 1662.716 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 447700182)
+PRN 15 -> Thoi gian bay: 0.070739 s | Pseudorange: 21206870.30 m
+PRN 18 -> Thoi gian bay: 0.070343 s | Pseudorange: 21088184.13 m
+PRN 21 -> Thoi gian bay: 0.069157 s | Pseudorange: 20732745.76 m
+PRN 22 -> Thoi gian bay: 0.073954 s | Pseudorange: 22170802.90 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 06 sec] -> V─⌐ ─æß╗Ö:  40.00806399┬░ | Kinh ─æß╗Ö: -105.26262327┬░ | Cao ─æß╗Ö: 1613.193 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 485892195)
+PRN 15 -> Thoi gian bay: 0.070737 s | Pseudorange: 21206501.37 m
+PRN 18 -> Thoi gian bay: 0.070342 s | Pseudorange: 21088129.19 m
+PRN 21 -> Thoi gian bay: 0.069157 s | Pseudorange: 20732847.81 m
+PRN 22 -> Thoi gian bay: 0.073953 s | Pseudorange: 22170481.06 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 07 sec] -> V─⌐ ─æß╗Ö:  40.00805811┬░ | Kinh ─æß╗Ö: -105.26266133┬░ | Cao ─æß╗Ö: 1658.650 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 524084209)
+PRN 15 -> Thoi gian bay: 0.070736 s | Pseudorange: 21206124.58 m
+PRN 18 -> Thoi gian bay: 0.070342 s | Pseudorange: 21088074.24 m
+PRN 21 -> Thoi gian bay: 0.069158 s | Pseudorange: 20732957.70 m
+PRN 22 -> Thoi gian bay: 0.073952 s | Pseudorange: 22170151.38 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 08 sec] -> V─⌐ ─æß╗Ö:  40.00819342┬░ | Kinh ─æß╗Ö: -105.26280307┬░ | Cao ─æß╗Ö: 1672.524 m
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+
+--- TINH TOAN KHOANG GIA (PSEUDORANGE) ---
+Ve tinh neo baseline: PRN 21 (Sample: 562276222)
+PRN 15 -> Thoi gian bay: 0.070735 s | Pseudorange: 21205755.65 m
+PRN 18 -> Thoi gian bay: 0.070342 s | Pseudorange: 21088027.14 m
+PRN 21 -> Thoi gian bay: 0.069158 s | Pseudorange: 20733059.75 m
+PRN 22 -> Thoi gian bay: 0.073951 s | Pseudorange: 22169821.70 m
+-----------------------------------------
+≡ƒîƒ [EPOCH t0 + 09 sec] -> V─⌐ ─æß╗Ö:  40.00815385┬░ | Kinh ─æß╗Ö: -105.26267235┬░ | Cao ─æß╗Ö: 1622.743 m

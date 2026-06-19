@@ -3,7 +3,7 @@
 #define ACQUISITION_H
 #define PI 3.14159265358979323846f
 #define DOPPLER_MAX 10000.0f
-#define DOPPLER_STEP 500.0f
+#define DOPPLER_STEP 250.0f
 // Cấu trúc số phức 
 typedef struct {
     float real; // Phần thực

@@ -5,7 +5,7 @@
 #include <direct.h> // Đừng quên include dòng này
 void save_acq_bin(int prn, int n_fft, Complex* corr_time, int is_first);
 AcquisitionResult performPCPSA(
-    const float* signal_in, // Tín hiệu đầu vào (mảng số thực)
+    const Complex* signal_in, // Tín hiệu đầu vào (mảng số thực)
     const float* local_prn, // Mã cục bộ (mảng số thực)
     int number_of_samples, // Số mẫu trong tín hiệu đầu vào
     int number_of_code_phases, // Số code phase cần kiểm tra
